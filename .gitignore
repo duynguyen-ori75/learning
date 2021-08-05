@@ -8,3 +8,4 @@ rwlock/output
 blockds/output
 tree/splaytree/output
 zipf/output
+simd/output
