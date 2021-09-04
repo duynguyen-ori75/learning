@@ -1,4 +1,4 @@
-#include "test_infras.hh"
+#include "test_infras.h"
 
 #include <gtest/gtest.h>
 
@@ -27,6 +27,38 @@ TEST(ReadWriteLockerTest, Basic) {
       ASSERT_EQ(pthread_create(&(tid[idx]), NULL, &(atomicRead<Counter_RWLocker>), cnt.get()), 0);
     } else {
       ASSERT_EQ(pthread_create(&(tid[idx]), NULL, &(atomicAdd<Counter_RWLocker>), cnt.get()), 0);
+    }
+  }
+
+  for (int idx = 0; idx < NO_THREADS; idx ++) pthread_join(tid[idx], NULL);
+  EXPECT_EQ(cnt->counter_, NO_THREADS / 2 + 10);
+}
+
+TEST(HybridLocker, Basic) {
+  auto cnt = std::make_unique<Counter_HybridLocker>(10);
+  pthread_t tid[NO_THREADS];
+
+  for (int idx = 0; idx < NO_THREADS; idx ++) {
+    if (idx % 2 == 0) {
+      ASSERT_EQ(pthread_create(&(tid[idx]), NULL, &(atomicRead<Counter_HybridLocker>), cnt.get()), 0);
+    } else {
+      ASSERT_EQ(pthread_create(&(tid[idx]), NULL, &(atomicAdd<Counter_HybridLocker>), cnt.get()), 0);
+    }
+  }
+
+  for (int idx = 0; idx < NO_THREADS; idx ++) pthread_join(tid[idx], NULL);
+  EXPECT_EQ(cnt->counter_, NO_THREADS / 2 + 10);
+}
+
+TEST(PthreadRWLocker, Basic) {
+  auto cnt = std::make_unique<Counter_pthread_rwlock_t>(10);
+  pthread_t tid[NO_THREADS];
+
+  for (int idx = 0; idx < NO_THREADS; idx ++) {
+    if (idx % 2 == 0) {
+      ASSERT_EQ(pthread_create(&(tid[idx]), NULL, &(atomicRead<Counter_pthread_rwlock_t>), cnt.get()), 0);
+    } else {
+      ASSERT_EQ(pthread_create(&(tid[idx]), NULL, &(atomicAdd<Counter_pthread_rwlock_t>), cnt.get()), 0);
     }
   }
 
